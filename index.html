@@ -917,6 +917,132 @@
             });
         });
     </script>
-    <script src="dev-tools-blocker.js"></script>
+  <script>
+  // Paste the code here
+</script>
+/**
+ * Comprehensive Developer Tools Blocker
+ * 
+ * This script uses multiple detection methods to identify when browser 
+ * developer tools are open and takes action accordingly.
+ */
+
+// Main function to detect and prevent developer tools
+(function() {
+    // Store the original console methods
+    const originalConsole = {
+        log: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        debug: console.debug
+    };
+    
+    // Function to check if DevTools is open
+    function isDevToolsOpen() {
+        // Method 1: Debugger statement detection
+        let devToolsOpen = false;
+        
+        // Method 2: Console timing detection
+        const startTime = performance.now();
+        debugger;
+        const endTime = performance.now();
+        
+        if (endTime - startTime > 100) {
+            devToolsOpen = true;
+        }
+        
+        // Method 3: Window size detection
+        const widthThreshold = window.outerWidth - window.innerWidth > 160;
+        const heightThreshold = window.outerHeight - window.innerHeight > 160;
+        
+        if (widthThreshold || heightThreshold) {
+            devToolsOpen = true;
+        }
+        
+        return devToolsOpen;
+    }
+    
+    // Override console methods
+    function disableConsole() {
+        console.log = function() {};
+        console.info = function() {};
+        console.warn = function() {};
+        console.error = function() {};
+        console.debug = function() {};
+    }
+    
+    // Restore console methods
+    function enableConsole() {
+        console.log = originalConsole.log;
+        console.info = originalConsole.info;
+        console.warn = originalConsole.warn;
+        console.error = originalConsole.error;
+        console.debug = originalConsole.debug;
+    }
+    
+    // Function to take action when DevTools is detected
+    function handleDevToolsOpen() {
+        // Option 1: Disable right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        // Option 2: Disable keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if (
+                e.keyCode === 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+                (e.ctrlKey && e.keyCode === 85)
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        }, false);
+        
+        // Option 3: Clear the page or redirect
+        if (isDevToolsOpen()) {
+            // You can choose one of these actions:
+            
+            // Action 1: Show warning and clear content
+            document.body.innerHTML = '<h1>Developer Tools detected. This action is not allowed.</h1>';
+            
+            // Action 2: Redirect to another page
+            // window.location.href = 'https://yourwebsite.com/access-denied';
+            
+            // Action 3: Refresh the page
+            // window.location.reload();
+            
+            disableConsole();
+        } else {
+            enableConsole();
+        }
+    }
+    
+    // Run initial check
+    handleDevToolsOpen();
+    
+    // Continuous checks
+    setInterval(handleDevToolsOpen, 1000);
+    
+    // Additional detection: DevTools orientation change
+    window.addEventListener('resize', function() {
+        handleDevToolsOpen();
+    });
+    
+    // CSS-based detection
+    const devToolsDetector = document.createElement('div');
+    Object.defineProperty(devToolsDetector, 'id', {
+        get: function() {
+            handleDevToolsOpen();
+            return 'detector';
+        }
+    });
+    
+    // Add to document to activate the detection
+    document.body.appendChild(devToolsDetector);
+})();
 </body>
 </html>
