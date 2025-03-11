@@ -1044,5 +1044,32 @@
 })();
 </script>
 
+    <script>
+
+        // middleware.js
+import { NextResponse } from 'next/server';
+
+export function middleware(req) {
+  const basicAuth = req.headers.get('authorization');
+  const validUser = process.env.BASIC_AUTH_USER || 'admin'; // Default username
+  const validPass = process.env.BASIC_AUTH_PASSWORD || 'password'; // Default password
+
+  if (basicAuth) {
+    const auth = basicAuth.split(' ')[1];
+    const [user, pass] = Buffer.from(auth, 'base64').toString().split(':');
+    if (user === validUser && pass === validPass) {
+      return NextResponse.next();
+    }
+  }
+
+  // Authentication failed
+  return new Response('Unauthorized', {
+    status: 401,
+    headers: { 'WWW-Authenticate': 'Basic realm="Private Site"' },
+  });
+}
+
+        </script>
+
 </body>
 </html>
